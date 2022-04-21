@@ -20,12 +20,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.servers.Server;
 
-@OpenAPIDefinition(servers = { @Server(url = "http://localhost:9090") }, 
-	info = @Info(title = "Sample Spring Boot API", version = "v1", 
-	description = "A project using Spring Boot with Swagger-UI enabled",
-	license = @License(name = "DXC License", 
-	url = "https://dxc.com/us/en"), 
-	contact = @Contact(url = "https://dxc.com/us/en", name = "Manoj")))
 @RestController
 @RequestMapping("v1/greeting")
 public class GreetingController {
@@ -35,9 +29,18 @@ public class GreetingController {
 
     @Operation(summary = "Returns a greeting message")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "successful operation", content = @Content(schema = @Schema(type = "object"))) })
+            @ApiResponse(responseCode = "200", description = "successful operation", content = @Content(schema = @Schema(implementation = Greeting.class))) })
     @GetMapping(value = "/message", produces = { "application/json" })
     public Greeting greeting(@RequestParam(value = "name", defaultValue = "World") String name) {
+        return new Greeting(counter.incrementAndGet(), String.format(template, name));
+    }
+    
+    
+    @Operation(summary = "Returns a greeting message")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "successful operation", content = @Content(schema = @Schema(implementation = Greeting.class))) })
+    @GetMapping(value = "/message01", produces = { "application/json" })
+    public Greeting greeting01(@RequestParam(value = "name", defaultValue = "Manoj") String name) {
         return new Greeting(counter.incrementAndGet(), String.format(template, name));
     }
 }
