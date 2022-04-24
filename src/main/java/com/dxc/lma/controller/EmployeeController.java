@@ -1,8 +1,11 @@
 package com.dxc.lma.controller;
 
+
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -10,8 +13,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.dxc.lma.dto.Employee;
+import com.dxc.lma.dto.EmployeeNotFoundExcepetion;
 
 @RestController
 public class EmployeeController {
@@ -22,8 +27,26 @@ public class EmployeeController {
 	public List<Employee> firstPage() {
 		return employees;
 	}
+	
+	@RequestMapping(value = "/employees/{id}", method = RequestMethod.GET, produces = "application/json")
+	public Employee getEmployee(@PathVariable("id") String id) {
+		
+		Employee retVal = null;
+		for (Employee emp : employees) {
+			if (emp.getEmpId().equals(id)) {
+				retVal = emp;
+				break;
+			}
+		}
+		
+		if(retVal == null) {
+			throw new EmployeeNotFoundExcepetion("empId-"+id);
+		}
+		
+		return retVal;
+	}
 
-	@DeleteMapping(path = { "/{id}" })
+	@DeleteMapping(path = { "/employees/{id}" })
 	public Employee delete(@PathVariable("id") String id) {
 		Employee deletedEmp = null;
 		for (Employee emp : employees) {
@@ -36,11 +59,15 @@ public class EmployeeController {
 		return deletedEmp;
 	}
 
-	@PostMapping
-	public Employee create(@RequestBody Employee user) {
+	@PostMapping("/employees")
+	public ResponseEntity<Employee> create(@RequestBody Employee user) {
 		employees.add(user);
 		System.out.println(employees);
-		return user;
+		URI location = ServletUriComponentsBuilder
+				.fromCurrentRequest()
+				.path("/{id}")
+				.buildAndExpand(user.getEmpId()).toUri();
+		return ResponseEntity.created(location).build();
 	}
 
 	private static List<Employee> createList() {
